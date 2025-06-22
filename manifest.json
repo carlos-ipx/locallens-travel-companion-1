@@ -2,20 +2,31 @@
   "manifest_version": 3,
   "name": "LocalLens Travel Companion",
   "version": "1.0.0",
-  "description": "Deliver real-time, location-based travel recommendations and insights directly within the browser.",
+  "description": "Automatically captures and organizes travel documents, builds an encrypted itinerary, and provides real-time local experience recommendations.",
   "permissions": [
     "storage",
     "activeTab",
     "tabs",
     "notifications",
-    "geolocation"
+    "downloads"
   ],
   "host_permissions": [
     "https://*.booking.com/*",
     "https://*.expedia.com/*",
     "https://*.airbnb.com/*",
-    "https://mail.google.com/*",
-    "https://www.googleapis.com/gmail/v1/users/me/messages*"
+    "https://*.skyscanner.com/*",
+    "https://*.hostelworld.com/*",
+    "https://*.delta.com/*", // Example airline, add more or use broader patterns
+    "https://*.united.com/*", // Example airline
+    "https://*.aa.com/*", // Example airline
+    "https://*.kayak.com/*", // Aggregator
+    "https://*.priceline.com/*", // Aggregator
+    "https://*.rentalcars.com/*", // Example car rental, add more
+    "https://*.enterprise.com/*", // Example car rental
+    "https://mail.google.com/*", // For Gmail API access and potentially content scripts
+    "https://outlook.office.com/*", // For Outlook API access and potentially content scripts
+    "https://outlook.live.com/*", // For Outlook webmail
+    "https://www.googleapis.com/*" // For Google APIs like Gmail
   ],
   "background": {
     "service_worker": "background.js"
@@ -25,7 +36,16 @@
       "matches": [
         "https://*.booking.com/*",
         "https://*.expedia.com/*",
-        "https://*.airbnb.com/*"
+        "https://*.airbnb.com/*",
+        "https://*.skyscanner.com/*",
+        "https://*.hostelworld.com/*",
+        "https://*.delta.com/*",
+        "https://*.united.com/*",
+        "https://*.aa.com/*",
+        "https://*.kayak.com/*",
+        "https://*.priceline.com/*",
+        "https://*.rentalcars.com/*",
+        "https://*.enterprise.com/*"
       ],
       "js": [
         "contentScript.js"
@@ -37,14 +57,36 @@
         "https://mail.google.com/*"
       ],
       "js": [
-        "emailParser.js"
+        "emailParserContentScript.js" // Renamed for clarity if it's a content script specifically for Gmail pages
       ],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": false // Usually better for email sites to avoid parsing in compose windows etc.
     }
+    // You might add a similar content script for Outlook if you plan to scrape its web interface
+    // {
+    //   "matches": [
+    //     "https://outlook.office.com/*",
+    //     "https://outlook.live.com/*"
+    //   ],
+    //   "js": [
+    //     "outlookParserContentScript.js"
+    //   ],
+    //   "run_at": "document_idle"
+    // }
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "LocalLens Companion"
+    "default_title": "LocalLens Companion",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "options_page": "options.html",
   "web_accessible_resources": [
@@ -52,14 +94,33 @@
       "resources": [
         "sidebar.html",
         "styles/sidebar.css",
-        "sidebarRecommendationsMap.css"
+        "styles/sidebarRecommendationsMap.css" // Assuming it's in the styles folder
+        // Add any other resources (images, fonts, etc.) that content scripts or injected pages might need
       ],
       "matches": [
         "https://*.booking.com/*",
         "https://*.expedia.com/*",
         "https://*.airbnb.com/*",
+        "https://*.skyscanner.com/*",
+        "https://*.hostelworld.com/*",
+        "https://*.delta.com/*",
+        "https://*.united.com/*",
+        "https://*.aa.com/*",
+        "https://*.kayak.com/*",
+        "https://*.priceline.com/*",
+        "https://*.rentalcars.com/*",
+        "https://*.enterprise.com/*",
         "https://mail.google.com/*"
+        // Add other domains if your sidebar/injected resources are used there
       ]
     }
-  ]
+  ],
+  "oauth2": {
+    "client_id": "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com", // Replace with your actual client ID
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly", // For reading emails
+      "https://www.googleapis.com/auth/userinfo.email" // To get user's email address
+      // Potentially other scopes if needed
+    ]
+  }
 }
