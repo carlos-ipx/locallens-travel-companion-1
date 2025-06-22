@@ -1,4 +1,4 @@
-<!-- popup.html -->
+<!-- popupSearchQuickAccess.html -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -8,14 +8,18 @@
     body { width: 320px; font-family: Arial, sans-serif; color: #333; background: #fafafa; padding: 12px; }
     h1 { font-size: 1.2em; margin-bottom: 8px; }
     .search-container { display: flex; margin-bottom: 8px; }
-    #search-input { flex: 1; padding: 6px 8px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; }
-    #search-button { margin-left: 6px; padding: 6px 12px; font-size: 1em; border: none; background: #0078D7; color: #fff; border-radius: 4px; cursor: pointer; }
-    #search-button:disabled { background: #aaa; cursor: default; }
+    /* Changed ID from #search-input to #userInput */
+    #userInput { flex: 1; padding: 6px 8px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; }
+    /* Changed ID from #search-button to #submitBtn */
+    #submitBtn { margin-left: 6px; padding: 6px 12px; font-size: 1em; border: none; background: #0078D7; color: #fff; border-radius: 4px; cursor: pointer; }
+    #submitBtn:disabled { background: #aaa; cursor: default; }
     .quick-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .quick-buttons button { flex: 1; padding: 6px; font-size: 0.9em; border: 1px solid #0078D7; background: #fff; color: #0078D7; border-radius: 4px; cursor: pointer; }
     .quick-buttons button:hover { background: #0078D7; color: #fff; }
+    /* Added style for the new status div */
+    #status { margin-bottom: 8px; color: #555; min-height: 1.2em; /* Reserve space */ }
     #results { list-style: none; max-height: 300px; overflow-y: auto; border-top: 1px solid #ddd; padding-top: 8px; }
-    #results.hidden { display: none; }
+    #results.hidden { display: none; } /* This class might be controlled by inline script, popupInputCommunicator doesn't use it */
     #results li { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; }
     #results li:hover, #results li:focus { background: #f0f0f0; outline: none; }
     #results li:focus { outline: 2px solid #0078D7; outline-offset: 2px; }
@@ -26,28 +30,33 @@
 <body>
   <h1>LocalLens Quick Access</h1>
   <div class="search-container">
-    <input id="search-input" type="text" placeholder="Search places?" aria-label="Search places"/>
-    <button id="search-button" disabled>Go</button>
+    <!-- ID changed to userInput -->
+    <input id="userInput" type="text" placeholder="Search places?" aria-label="Search places"/>
+    <!-- ID changed to submitBtn. Initial 'disabled' state might be set by popupInputCommunicator.js -->
+    <button id="submitBtn">Go</button>
   </div>
+
+  <!-- New status div for popupInputCommunicator.js -->
+  <div id="status"></div>
+
   <div class="quick-buttons">
     <button data-query="restaurants">Restaurants</button>
     <button data-query="hotels">Hotels</button>
     <button data-query="attractions">Attractions</button>
     <button data-query="cafes">Cafes</button>
   </div>
+
   <ul id="results" class="hidden" role="listbox" aria-label="Search results"></ul>
+
   <script>
-    const input = document.getElementById('search-input');
-    const button = document.getElementById('search-button');
+    // --- Inline script for Quick Buttons and their specific search/render logic ---
     const quicks = document.querySelectorAll('.quick-buttons button');
-    const results = document.getElementById('results');
+    const resultsDisplay = document.getElementById('results'); // Renamed to avoid conflict if 'results' is global via ID
 
-    function updateButton() {
-      button.disabled = !input.value.trim();
-    }
-
-    function renderResults(items) {
-      results.innerHTML = '';
+    // This renderResults is specific to the 'searchPlaces' flow from quick buttons
+    function renderQuickButtonResults(items) {
+      resultsDisplay.innerHTML = '';
+      resultsDisplay.classList.remove('hidden'); // Ensure results are visible
       if (items && items.length) {
         items.forEach(place => {
           const li = document.createElement('li');
@@ -61,8 +70,8 @@
           addr.className = 'result-address';
           li.append(title, addr);
           function activate() {
-            chrome.runtime.sendMessage({ type: 'openPlace', place });
-            window.close();
+            chrome.runtime.sendMessage({ type: 'openPlace', place: place }); // Ensure 'place' object is passed
+            window.close(); // This closes the popup
           }
           li.addEventListener('click', activate);
           li.addEventListener('keydown', e => {
@@ -71,59 +80,76 @@
               activate();
             }
           });
-          results.appendChild(li);
+          resultsDisplay.appendChild(li);
         });
       } else {
         const li = document.createElement('li');
-        li.textContent = 'No results found.';
+        li.textContent = 'No results found for this quick search.';
         li.setAttribute('role', 'option');
         li.setAttribute('tabindex', '0');
-        results.appendChild(li);
+        resultsDisplay.appendChild(li);
       }
     }
 
-    function renderError() {
-      results.innerHTML = '';
+    // This renderError is specific to the 'searchPlaces' flow
+    function renderQuickButtonError() {
+      resultsDisplay.innerHTML = '';
+      resultsDisplay.classList.remove('hidden');
       const li = document.createElement('li');
-      li.textContent = 'Error searching. Please try again.';
+      li.textContent = 'Error in quick search. Please try again.';
       li.setAttribute('role', 'option');
       li.setAttribute('tabindex', '0');
-      results.appendChild(li);
+      resultsDisplay.appendChild(li);
     }
 
-    function performSearch(query) {
-      results.innerHTML = '';
-      results.classList.remove('hidden');
+    // This performSearch is specific to the 'searchPlaces' flow for quick buttons
+    function performQuickButtonSearch(query) {
+      resultsDisplay.innerHTML = ''; // Clear previous results
+      resultsDisplay.classList.remove('hidden');
       const loading = document.createElement('li');
-      loading.textContent = 'Searching?';
-      results.appendChild(loading);
-      chrome.runtime.sendMessage({ type: 'searchPlaces', query }, response => {
-        results.innerHTML = '';
+      loading.textContent = 'Searching for ' + query + '...'; // Clarified loading message
+      resultsDisplay.appendChild(loading);
+
+      chrome.runtime.sendMessage({ type: 'searchPlaces', query: query }, response => {
+        // resultsDisplay.innerHTML = ''; // Clearing here might remove "Searching..." too soon if response is fast
+        if (chrome.runtime.lastError) {
+          console.error("QuickSearch Error:", chrome.runtime.lastError.message);
+          renderQuickButtonError();
+          return;
+        }
         if (response && response.status === 'success') {
-          renderResults(response.data);
+          renderQuickButtonResults(response.data);
         } else {
-          renderError();
+          renderQuickButtonError();
         }
       });
     }
 
-    input.addEventListener('input', updateButton);
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && input.value.trim()) {
-        e.preventDefault();
-        performSearch(input.value.trim());
-      }
-    });
-    button.addEventListener('click', () => {
-      if (input.value.trim()) performSearch(input.value.trim());
-    });
     quicks.forEach(btn => {
       btn.addEventListener('click', () => {
-        performSearch(btn.dataset.query);
+        const query = btn.dataset.query;
+        if (query) {
+          // If you want the main search input to reflect this query:
+          // const mainUserInput = document.getElementById('userInput');
+          // if (mainUserInput) mainUserInput.value = query;
+          performQuickButtonSearch(query);
+        }
       });
     });
 
-    updateButton();
+    // Removed:
+    // const input = document.getElementById('search-input'); (now userInput, handled by external script)
+    // const button = document.getElementById('search-button'); (now submitBtn, handled by external script)
+    // function updateButton() { ... } (handled by external script)
+    // input.addEventListener('input', updateButton); (handled by external script)
+    // input.addEventListener('keydown', e => { if (e.key === 'Enter' ... performSearch) }); (handled by external script)
+    // button.addEventListener('click', () => { ... performSearch }); (handled by external script)
+    // updateButton(); (handled by external script)
+
+    console.log("LocalLens: Inline script for quick buttons initialized.");
   </script>
+
+  <!-- External script for main search input functionality -->
+  <script src="popupInputCommunicator.js"></script>
 </body>
 </html>
