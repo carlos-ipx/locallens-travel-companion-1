@@ -1,0 +1,23 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LocalLens Travel Recommendations</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="sidebarRecommendationsMap.css">
+</head>
+<body>
+  <div id="localLensSidebar"
+       class="sidebar-container"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="sidebarTitle">
+    <header class="sidebar-header">
+      <h1 id="sidebarTitle" class="sidebar-title">Travel Recommendations</h1>
+      <button id="closeSidebarButton" class="sidebar-close" aria-label="Close">&times;</button>
+    </header>
+    <div id="mapContainer" class="sidebar-map" aria-label="Map displaying travel recommendations"></div>
+    <ul id="recommendationsList" class="sidebar-list" aria-live="polite"></ul>
+  </div>
+  <script src="sidebarRecommendationMapHandler.js"></script>
+</body>
+</html>
