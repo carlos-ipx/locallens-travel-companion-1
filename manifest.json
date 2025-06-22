@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "LocalLens Travel Companion",
+  "version": "1.0.0",
+  "description": "Deliver real-time, location-based travel recommendations and insights directly within the browser.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "notifications",
+    "geolocation"
+  ],
+  "host_permissions": [
+    "https://*.booking.com/*",
+    "https://*.expedia.com/*",
+    "https://*.airbnb.com/*",
+    "https://mail.google.com/*",
+    "https://www.googleapis.com/gmail/v1/users/me/messages*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.booking.com/*",
+        "https://*.expedia.com/*",
+        "https://*.airbnb.com/*"
+      ],
+      "js": [
+        "contentScript.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "emailParser.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LocalLens Companion"
+  },
+  "options_page": "options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sidebar.html",
+        "styles/sidebar.css",
+        "sidebarRecommendationsMap.css"
+      ],
+      "matches": [
+        "https://*.booking.com/*",
+        "https://*.expedia.com/*",
+        "https://*.airbnb.com/*",
+        "https://mail.google.com/*"
+      ]
+    }
+  ]
+}
