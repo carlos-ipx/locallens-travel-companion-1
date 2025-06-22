@@ -1,0 +1,129 @@
+<!-- popup.html -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LocalLens Quick Access</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 320px; font-family: Arial, sans-serif; color: #333; background: #fafafa; padding: 12px; }
+    h1 { font-size: 1.2em; margin-bottom: 8px; }
+    .search-container { display: flex; margin-bottom: 8px; }
+    #search-input { flex: 1; padding: 6px 8px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; }
+    #search-button { margin-left: 6px; padding: 6px 12px; font-size: 1em; border: none; background: #0078D7; color: #fff; border-radius: 4px; cursor: pointer; }
+    #search-button:disabled { background: #aaa; cursor: default; }
+    .quick-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .quick-buttons button { flex: 1; padding: 6px; font-size: 0.9em; border: 1px solid #0078D7; background: #fff; color: #0078D7; border-radius: 4px; cursor: pointer; }
+    .quick-buttons button:hover { background: #0078D7; color: #fff; }
+    #results { list-style: none; max-height: 300px; overflow-y: auto; border-top: 1px solid #ddd; padding-top: 8px; }
+    #results.hidden { display: none; }
+    #results li { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; }
+    #results li:hover, #results li:focus { background: #f0f0f0; outline: none; }
+    #results li:focus { outline: 2px solid #0078D7; outline-offset: 2px; }
+    .result-title { font-weight: bold; margin-bottom: 4px; }
+    .result-address { font-size: 0.9em; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>LocalLens Quick Access</h1>
+  <div class="search-container">
+    <input id="search-input" type="text" placeholder="Search places?" aria-label="Search places"/>
+    <button id="search-button" disabled>Go</button>
+  </div>
+  <div class="quick-buttons">
+    <button data-query="restaurants">Restaurants</button>
+    <button data-query="hotels">Hotels</button>
+    <button data-query="attractions">Attractions</button>
+    <button data-query="cafes">Cafes</button>
+  </div>
+  <ul id="results" class="hidden" role="listbox" aria-label="Search results"></ul>
+  <script>
+    const input = document.getElementById('search-input');
+    const button = document.getElementById('search-button');
+    const quicks = document.querySelectorAll('.quick-buttons button');
+    const results = document.getElementById('results');
+
+    function updateButton() {
+      button.disabled = !input.value.trim();
+    }
+
+    function renderResults(items) {
+      results.innerHTML = '';
+      if (items && items.length) {
+        items.forEach(place => {
+          const li = document.createElement('li');
+          li.setAttribute('role', 'option');
+          li.setAttribute('tabindex', '0');
+          const title = document.createElement('div');
+          title.textContent = place.name;
+          title.className = 'result-title';
+          const addr = document.createElement('div');
+          addr.textContent = place.address || '';
+          addr.className = 'result-address';
+          li.append(title, addr);
+          function activate() {
+            chrome.runtime.sendMessage({ type: 'openPlace', place });
+            window.close();
+          }
+          li.addEventListener('click', activate);
+          li.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+              e.preventDefault();
+              activate();
+            }
+          });
+          results.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = 'No results found.';
+        li.setAttribute('role', 'option');
+        li.setAttribute('tabindex', '0');
+        results.appendChild(li);
+      }
+    }
+
+    function renderError() {
+      results.innerHTML = '';
+      const li = document.createElement('li');
+      li.textContent = 'Error searching. Please try again.';
+      li.setAttribute('role', 'option');
+      li.setAttribute('tabindex', '0');
+      results.appendChild(li);
+    }
+
+    function performSearch(query) {
+      results.innerHTML = '';
+      results.classList.remove('hidden');
+      const loading = document.createElement('li');
+      loading.textContent = 'Searching?';
+      results.appendChild(loading);
+      chrome.runtime.sendMessage({ type: 'searchPlaces', query }, response => {
+        results.innerHTML = '';
+        if (response && response.status === 'success') {
+          renderResults(response.data);
+        } else {
+          renderError();
+        }
+      });
+    }
+
+    input.addEventListener('input', updateButton);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && input.value.trim()) {
+        e.preventDefault();
+        performSearch(input.value.trim());
+      }
+    });
+    button.addEventListener('click', () => {
+      if (input.value.trim()) performSearch(input.value.trim());
+    });
+    quicks.forEach(btn => {
+      btn.addEventListener('click', () => {
+        performSearch(btn.dataset.query);
+      });
+    });
+
+    updateButton();
+  </script>
+</body>
+</html>
