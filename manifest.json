@@ -16,17 +16,17 @@
     "https://*.airbnb.com/*",
     "https://*.skyscanner.com/*",
     "https://*.hostelworld.com/*",
-    "https://*.delta.com/*", // Example airline, add more or use broader patterns
-    "https://*.united.com/*", // Example airline
-    "https://*.aa.com/*", // Example airline
-    "https://*.kayak.com/*", // Aggregator
-    "https://*.priceline.com/*", // Aggregator
-    "https://*.rentalcars.com/*", // Example car rental, add more
-    "https://*.enterprise.com/*", // Example car rental
-    "https://mail.google.com/*", // For Gmail API access and potentially content scripts
-    "https://outlook.office.com/*", // For Outlook API access and potentially content scripts
-    "https://outlook.live.com/*", // For Outlook webmail
-    "https://www.googleapis.com/*" // For Google APIs like Gmail
+    "https://*.delta.com/*",
+    "https://*.united.com/*",
+    "https://*.aa.com/*",
+    "https://*.kayak.com/*",
+    "https://*.priceline.com/*",
+    "https://*.rentalcars.com/*",
+    "https://*.enterprise.com/*",
+    "https://mail.google.com/*",
+    "https://outlook.office.com/*",
+    "https://outlook.live.com/*",
+    "https://www.googleapis.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -57,22 +57,11 @@
         "https://mail.google.com/*"
       ],
       "js": [
-        "emailParserContentScript.js" // Renamed for clarity if it's a content script specifically for Gmail pages
+        "emailParserContentScript.js"
       ],
       "run_at": "document_idle",
-      "all_frames": false // Usually better for email sites to avoid parsing in compose windows etc.
+      "all_frames": false
     }
-    // You might add a similar content script for Outlook if you plan to scrape its web interface
-    // {
-    //   "matches": [
-    //     "https://outlook.office.com/*",
-    //     "https://outlook.live.com/*"
-    //   ],
-    //   "js": [
-    //     "outlookParserContentScript.js"
-    //   ],
-    //   "run_at": "document_idle"
-    // }
   ],
   "action": {
     "default_popup": "popup.html",
@@ -94,8 +83,7 @@
       "resources": [
         "sidebar.html",
         "styles/sidebar.css",
-        "styles/sidebarRecommendationsMap.css" // Assuming it's in the styles folder
-        // Add any other resources (images, fonts, etc.) that content scripts or injected pages might need
+        "styles/sidebarRecommendationsMap.css"
       ],
       "matches": [
         "https://*.booking.com/*",
@@ -111,16 +99,14 @@
         "https://*.rentalcars.com/*",
         "https://*.enterprise.com/*",
         "https://mail.google.com/*"
-        // Add other domains if your sidebar/injected resources are used there
       ]
     }
   ],
   "oauth2": {
-    "client_id": "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com", // Replace with your actual client ID
+    "client_id": "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
     "scopes": [
-      "https://www.googleapis.com/auth/gmail.readonly", // For reading emails
-      "https://www.googleapis.com/auth/userinfo.email" // To get user's email address
-      // Potentially other scopes if needed
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/userinfo.email"
     ]
   }
 }
