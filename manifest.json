@@ -64,7 +64,7 @@
     }
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "popupSearchQuickAccess.html", // <<< THIS LINE IS UPDATED
     "default_title": "LocalLens Companion",
     "default_icon": {
       "16": "icons/icon16.png",
