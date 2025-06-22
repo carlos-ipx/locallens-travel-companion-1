@@ -1,0 +1,62 @@
+/* Basic style for sidebarRecommendationsMap.css */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4; /* A light grey background */
+}
+
+.sidebar-container {
+  padding: 10px;
+}
+
+.sidebar-header {
+  display: flex; /* Helps align title and close button */
+  justify-content: space-between; /* Puts space between title and button */
+  align-items: center; /* Vertically aligns them */
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #cccccc;
+}
+
+.sidebar-title {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.sidebar-close {
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+#recommendation-map { /* Styles for your map area */
+  width: 100%;
+  height: 200px; /* You can change this height later */
+  background-color: #e0e0e0; /* A placeholder background for the map */
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  display: flex; /* For centering text if map doesn't load */
+  align-items: center; /* For centering text */
+  justify-content: center; /* For centering text */
+  color: #555; /* Text color for placeholder */
+}
+
+.sidebar-list { /* Styles for your list of recommendations */
+  list-style-type: none; /* Removes bullet points */
+  padding: 0;
+  margin: 0;
+  max-height: 250px; /* Max height before scrolling */
+  overflow-y: auto; /* Adds a scrollbar if content is too tall */
+}
+
+.sidebar-list li { /* Styles for each item in the list */
+  padding: 8px;
+  border-bottom: 1px solid #dddddd;
+  font-size: 0.9em;
+}
+
+.sidebar-list li:last-child {
+  border-bottom: none; /* No border for the last item */
+}
