@@ -1,9 +1,11 @@
+<!DOCTYPE html> <!-- Added DOCTYPE -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>LocalLens Travel Recommendations</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="sidebarRecommendationsMap.css">
+  <!-- Updated CSS path assuming it's in a 'styles' folder -->
+  <link rel="stylesheet" href="styles/sidebarRecommendationsMap.css">
 </head>
 <body>
   <div id="localLensSidebar"
@@ -11,12 +13,21 @@
        role="dialog"
        aria-modal="true"
        aria-labelledby="sidebarTitle">
+
     <header class="sidebar-header">
       <h1 id="sidebarTitle" class="sidebar-title">Travel Recommendations</h1>
-      <button id="closeSidebarButton" class="sidebar-close" aria-label="Close">&times;</button>
+      <button id="closeSidebarButton" class="sidebar-close" aria-label="Close">×</button>
     </header>
-    <div id="mapContainer" class="sidebar-map" aria-label="Map displaying travel recommendations"></div>
-    <ul id="recommendationsList" class="sidebar-list" aria-live="polite"></ul>
+
+    <!-- Map container ID changed to 'recommendation-map' -->
+    <div id="recommendation-map" class="sidebar-map" aria-label="Map displaying travel recommendations">
+      <!-- Map will be initialized here by the handler script -->
+    </div>
+
+    <ul id="recommendationsList" class="sidebar-list" aria-live="polite">
+      <!-- Recommendation items will be dynamically added here -->
+    </ul>
+
   </div>
   <script src="sidebarRecommendationMapHandler.js"></script>
 </body>
