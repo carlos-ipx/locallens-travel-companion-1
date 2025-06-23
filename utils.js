@@ -133,5 +133,5 @@ class APIClientManager {
   }
 }
 
-const apiClientManager = new APIClientManager();
-export default apiClientManager;
+// Make the instance available for import
+export const apiClientManager = new APIClientManager();

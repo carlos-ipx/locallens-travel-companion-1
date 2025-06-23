@@ -1,11 +1,13 @@
-<!DOCTYPE html> <!-- Added DOCTYPE -->
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>LocalLens Travel Recommendations</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Updated CSS path assuming it's in a 'styles' folder -->
-  <link rel="stylesheet" href="styles/sidebarRecommendationsMap.css">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="../lib/leaflet.css">
+  <!-- Custom sidebar map styles -->
+  <link rel="stylesheet" href="../styles/sidebarRecommendationsMap.css">
 </head>
 <body>
   <div id="localLensSidebar"
@@ -19,16 +21,19 @@
       <button id="closeSidebarButton" class="sidebar-close" aria-label="Close">×</button>
     </header>
 
-    <!-- Map container ID changed to 'recommendation-map' -->
     <div id="recommendation-map" class="sidebar-map" aria-label="Map displaying travel recommendations">
-      <!-- Map will be initialized here by the handler script -->
+      <!-- Map will be initialized here by sidebarscript.js -->
     </div>
 
     <ul id="recommendationsList" class="sidebar-list" aria-live="polite">
-      <!-- Recommendation items will be dynamically added here -->
+      <!-- Recommendation items will be dynamically added here by sidebarscript.js -->
     </ul>
 
   </div>
-  <script src="sidebarRecommendationMapHandler.js"></script>
+
+  <!-- Leaflet JavaScript -->
+  <script src="../lib/leaflet.js"></script>
+  <!-- Sidebar script -->
+  <script src="sidebarscript.js"></script>
 </body>
 </html>

@@ -1,0 +1,78 @@
+/* LocalLens Global Styles */
+/* This file can be used for styles shared across popup, options page, etc. */
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+.container {
+  padding: 15px;
+  width: 300px; /* Default width for popups/options */
+  box-sizing: border-box;
+}
+
+h1, h2, h3 {
+  color: #1a73e8; /* Example primary color */
+}
+
+button {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #1558b3;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0 12px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.status-success {
+  color: green;
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+.status-error {
+  color: red;
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+/* Specific to Options Page form groups */
+.form-group {
+    margin-bottom: 15px;
+}
+/* Add more shared styles as needed */

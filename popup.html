@@ -3,23 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>LocalLens Quick Access</title>
+  <link rel="stylesheet" href="styles.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { width: 320px; font-family: Arial, sans-serif; color: #333; background: #fafafa; padding: 12px; }
-    h1 { font-size: 1.2em; margin-bottom: 8px; }
+    /* Specific styles for popup that might not be in global styles.css */
+    /* Or, these could be moved to a popup.css or merged into styles.css */
+    body { width: 320px; background: #fafafa; padding: 12px; } /* Retaining specific body size and padding */
     .search-container { display: flex; margin-bottom: 8px; }
-    /* Changed ID from #search-input to #userInput */
-    #userInput { flex: 1; padding: 6px 8px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; }
-    /* Changed ID from #search-button to #submitBtn */
-    #submitBtn { margin-left: 6px; padding: 6px 12px; font-size: 1em; border: none; background: #0078D7; color: #fff; border-radius: 4px; cursor: pointer; }
-    #submitBtn:disabled { background: #aaa; cursor: default; }
+    #userInput { flex: 1; } /* Global styles.css handles padding, border etc. */
+    #submitBtn { margin-left: 6px; } /* Global styles.css handles button styling */
     .quick-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .quick-buttons button { flex: 1; padding: 6px; font-size: 0.9em; border: 1px solid #0078D7; background: #fff; color: #0078D7; border-radius: 4px; cursor: pointer; }
+    .quick-buttons button { flex: 1; /* Base button styling from styles.css */ border: 1px solid #0078D7; background: #fff; color: #0078D7; }
     .quick-buttons button:hover { background: #0078D7; color: #fff; }
-    /* Added style for the new status div */
-    #status { margin-bottom: 8px; color: #555; min-height: 1.2em; /* Reserve space */ }
+    #status { margin-bottom: 8px; min-height: 1.2em; /* Reserve space */ }
     #results { list-style: none; max-height: 300px; overflow-y: auto; border-top: 1px solid #ddd; padding-top: 8px; }
-    #results.hidden { display: none; } /* This class might be controlled by inline script, popupInputCommunicator doesn't use it */
+    #results.hidden { display: none; }
     #results li { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; }
     #results li:hover, #results li:focus { background: #f0f0f0; outline: none; }
     #results li:focus { outline: 2px solid #0078D7; outline-offset: 2px; }
@@ -150,6 +147,6 @@
   </script>
 
   <!-- External script for main search input functionality -->
-  <script src="popupInputCommunicator.js"></script>
+  <script src="popupscript.js"></script>
 </body>
 </html>

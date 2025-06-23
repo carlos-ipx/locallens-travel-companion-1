@@ -1,0 +1,97 @@
+/* LocalLens Sidebar Styles */
+/* Specific styles for the injected sidebar UI */
+
+/* The main sidebar container, injected by contentscriptinjector.js */
+.locallens-sidebar {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 350px; /* Default width, can be adjusted */
+  max-height: calc(100vh - 20px); /* Max height considering top/bottom margin */
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 2147483647; /* Max z-index to stay on top */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevents content from spilling out before it's ready */
+  font-family: Arial, sans-serif;
+}
+
+.locallens-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #eef1f4; /* Light header background */
+  border-bottom: 1px solid #ddd;
+}
+
+.locallens-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.locallens-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #555;
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+}
+
+.locallens-close-btn:hover {
+  color: #000;
+}
+
+.locallens-sidebar-content {
+  padding: 15px;
+  overflow-y: auto; /* Allows scrolling for content that exceeds sidebar height */
+  flex-grow: 1; /* Takes up available space */
+  color: #333;
+}
+
+.locallens-sidebar-content p {
+    margin-top: 0;
+}
+
+.locallens-sidebar-content pre {
+  white-space: pre-wrap;       /* Since CSS 2.1 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+  background-color: #eee;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* Styles for individual recommendation items if rendered directly or via sidebarui.html */
+.recommendation-item {
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+
+.recommendation-item:last-child {
+  border-bottom: none;
+}
+
+.recommendation-item h4 {
+  margin: 0 0 5px 0;
+  font-size: 1em;
+  color: #1a73e8;
+}
+
+.recommendation-item p {
+  margin: 0;
+  font-size: 0.9em;
+  color: #555;
+}
+
+/* Make sure these styles don't conflict with host page styles too much.
+   Prefixing with a unique ID or class like 'locallens-' helps. */

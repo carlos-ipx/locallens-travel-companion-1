@@ -36,4 +36,4 @@ const installApiRouter = routes => {
   };
 };
 
-export default installApiRouter;
+export { installApiRouter };
