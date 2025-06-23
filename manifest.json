@@ -24,9 +24,6 @@
     "https://*.priceline.com/*",
     "https://*.rentalcars.com/*",
     "https://*.enterprise.com/*",
-    "https://mail.google.com/*",
-    "https://outlook.office.com/*",
-    "https://outlook.live.com/*",
     "https://your-worker-name.your-account.workers.dev/*"
   ],
   "background": {
@@ -91,8 +88,7 @@
         "https://*.kayak.com/*",
         "https://*.priceline.com/*",
         "https://*.rentalcars.com/*",
-        "https://*.enterprise.com/*",
-        "https://mail.google.com/*"
+        "https://*.enterprise.com/*"
       ]
     }
   ]
