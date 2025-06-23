@@ -1,5 +1,5 @@
 // API Keys and direct API URLs are removed. All calls go through WORKER_URL.
-const WORKER_URL = "https://your-worker-name.your-account.workers.dev"; // USER: Replace with your actual worker URL
+const WORKER_URL = "https://openai-proxy.noisy-meadow-52ad.workers.dev"; // USER: Replace with your actual worker URL
 
 const DEFAULT_RADIUS_METERS = 5000;
 const DEFAULT_TIMEOUT = 10000; // Timeout for fetch requests to the worker
@@ -67,26 +67,38 @@ class APIClientManager {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
+      const queryParams = new URLSearchParams({
+        text: locationText,
+        limit: 1
+      });
+
+      const requestBody = {
+        endpoint: "/v1/geocode/search",
+        query: queryParams.toString()
+      };
+
+      console.log(`APIClientManager: geocode - locationText: "${locationText}"`);
+      console.log(`APIClientManager: geocode - queryParams string: "${queryParams.toString()}"`);
+      console.log(`APIClientManager: geocode - requestBody for worker:`, JSON.stringify(requestBody, null, 2));
+
       const response = await fetch(`${WORKER_URL}/geoapify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          endpoint: "/v1/geocode/search",
-          query_params: {
-            text: locationText,
-            limit: 1
-          }
-        }),
+        body: JSON.stringify(requestBody), // Send as URL-encoded string
         signal: controller.signal
       });
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         let errorMsg = response.statusText;
+        let responseBody = await response.text(); // Get raw response body for logging
         try {
-          const errorData = await response.json();
+          // Try to parse as JSON for more structured error, but use raw if not JSON
+          const errorData = JSON.parse(responseBody);
           errorMsg = (errorData.error && (errorData.error.message || errorData.error)) || errorData.message || errorMsg;
-        } catch (e) { /* ignore if response isn't json */ }
+        } catch (e) {
+          errorMsg = `${errorMsg} - Response: ${responseBody.substring(0, 200)}`; // Add snippet of non-JSON response
+        }
         console.error("Worker /geoapify (geocode) request failed:", response.status, errorMsg);
         throw new Error(`Geocoding via proxy failed: ${errorMsg}`);
       }
@@ -122,7 +134,7 @@ class APIClientManager {
   }
 
   async getOpenAISummary(placeName, locationName) {
-    const prompt = `For the place named "${placeName}" located in "${locationName}", provide a short, engaging summary (around 2-3 sentences, max 70 words). This summary should highlight why it might be considered an authentic or "off-the-beaten-path" experience for a traveler, focusing on its unique local appeal rather than typical tourist descriptions.`;
+    const prompt = `For the place named "${placeName}" located in "${locationName}", provide a short, engaging summary in English (around 2-3 sentences, max 70 words). This summary should highlight why it might be considered an authentic or "off-the-beaten-path" experience for a traveler, focusing on its unique local appeal rather than typical tourist descriptions. Ensure the output is in English.`;
     console.log(`APIClientManager: Requesting OpenAI summary via worker for "${placeName}" in "${locationName}"`);
 
     try {
@@ -232,7 +244,8 @@ class APIClientManager {
       filter: `circle:${lon},${lat},${radius}`,
       limit: actualLimit
     };
-    console.log("  Geoapify /v2/places query_params for worker:", JSON.stringify(queryParamsForWorker, null, 2));
+    const queryString = new URLSearchParams(queryParamsForWorker).toString();
+    console.log("  Geoapify /v2/places query string for worker:", queryString);
 
     try {
       const controller = new AbortController();
@@ -243,7 +256,7 @@ class APIClientManager {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           endpoint: "/v2/places",
-          query_params: queryParamsForWorker
+          query: queryString
         }),
         signal: controller.signal
       });
@@ -251,10 +264,13 @@ class APIClientManager {
 
       if (!response.ok) {
         let errorMsg = response.statusText;
+        let responseBody = await response.text();
         try {
-          const errorData = await response.json();
+          const errorData = JSON.parse(responseBody);
           errorMsg = (errorData.error && (errorData.error.message || errorData.error)) || errorData.message || errorMsg;
-        } catch (e) { /* ignore */ }
+        } catch (e) {
+          errorMsg = `${errorMsg} - Response: ${responseBody.substring(0, 200)}`;
+        }
         console.error("Worker /geoapify (places) request failed:", response.status, errorMsg);
         throw new Error(`Place search via proxy failed: ${errorMsg}`);
       }
@@ -308,12 +324,14 @@ class APIClientManager {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
+      const queryString = new URLSearchParams({ id: placeId }).toString();
+
       const response = await fetch(`${WORKER_URL}/geoapify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           endpoint: "/v2/place-details",
-          query_params: { id: placeId }
+          query: queryString
         }),
         signal: controller.signal
       });
@@ -321,10 +339,13 @@ class APIClientManager {
 
       if (!response.ok) {
         let errorMsg = response.statusText;
+        let responseBody = await response.text();
         try {
-          const errorData = await response.json();
+          const errorData = JSON.parse(responseBody);
           errorMsg = (errorData.error && (errorData.error.message || errorData.error)) || errorData.message || errorMsg;
-        } catch (e) { /* ignore */ }
+        } catch (e) {
+          errorMsg = `${errorMsg} - Response: ${responseBody.substring(0, 200)}`;
+        }
         console.error("Worker /geoapify (place-details) request failed:", response.status, errorMsg);
         throw new Error(`Place details via proxy failed: ${errorMsg}`);
       }
