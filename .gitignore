@@ -134,3 +134,10 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Chrome Extension specific
+*.crx
+*.zip # If you zip your extension for distribution
+dist/ # Common output directory for built extensions
+package-lock.json # If you later add npm but don't want to commit this
+```
