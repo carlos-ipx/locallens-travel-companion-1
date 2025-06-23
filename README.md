@@ -6,166 +6,161 @@ LocalLens Travel Companion is a Chrome extension that delivers real-time, locati
 
 ## Table of Contents
 
-1. [Features](#features)  
-2. [Architecture & Components](#architecture--components)  
-3. [Installation](#installation)  
-4. [Usage](#usage)  
-5. [File Structure](#file-structure)  
-6. [Dependencies](#dependencies)  
-7. [To-Do / Roadmap](#to-do--roadmap)  
-8. [Contributing](#contributing)  
+1. [Project Goal](#project-goal)
+2. [Core Features (MVP)](#core-features-mvp)
+3. [Architecture & Key Components](#architecture--key-components)
+4. [Installation](#installation)
+5. [Usage (Conceptual)](#usage-conceptual)
+6. [File Structure (Current)](#file-structure-current)
+7. [Dependencies](#dependencies)
+8. [To-Do / Roadmap](#to-do--roadmap)
 
 ---
 
-## Features
+## Project Goal
 
-- Destination search with optional ?use my location? fallback  
-- Persistent sidebar overlay on supported travel/map sites  
-- Real-time recommendations for restaurants, attractions, and events  
-- Interactive filters: price range, categories, ratings  
-- Embedded map view with markers  
-- Offline caching of last search results  
-- Persistent user preferences (interests, API keys, default map provider)  
-- Multi-language date/time formatting via `utils.js`  
-- Robust messaging channels between popup, background, and content scripts  
+The primary goal is to automatically capture and organize all of a traveler’s booking confirmations (from websites and email) into an encrypted, chronological itinerary timeline and then augment that itinerary with real-time, authentic local experience recommendations tied to the user’s destinations and dates. This Chrome extension will manage these tasks directly in the browser.
 
 ---
 
-## Architecture & Components
+## Core Features (MVP)
 
-### manifest.json  
-Declares extension metadata, permissions, content scripts, service worker, and CSP rules.  
-Key permissions:  
-- `geolocation`  
-- `storage`  
-- Host permissions for third-party APIs  
-- `activeTab`  
+Based on the project plan, the MVP aims to include:
+- Automatic Booking Confirmation Detection (content scripts on major travel sites).
+- Email Integration and Parsing (Gmail/Outlook).
+- NLP-Powered Document Classification (flights, stays, transport, activities).
+- Chronological Timeline Organization with conflict detection.
+- Basic Local Experience Finder (map/list view with free local tips via LocalLens API).
+- Encrypted local storage.
 
-### background.js  
-Service worker that:  
-- Handles `onInstalled`  
-- Orchestrates API calls (using `utils.js`)  
-- Routes messages (SEARCH_DESTINATION, FETCH_NEARBY)  
-- Throttles requests & manages caching in `chrome.storage.local`  
+---
 
-### contentscriptinjector.js  
-- Injects `sidebarui.html` into travel/map pages matching URL patterns  
-- Listens for data messages from `background.js` and forwards them to `sidebarscript.js`  
+## Architecture & Key Components
 
-### popup.html & popupscript.js  
-- Popup UI for destination input or ?use current location?  
-- Sends `chrome.runtime` messages to `background.js`  
+### `manifest.json`
+Declares extension metadata, permissions (storage, tabs, activeTab, notifications, downloads), content scripts, background service worker, browser action popup, options page, and web-accessible resources. Includes host permissions for travel sites, email providers, and necessary APIs. Defines OAuth2 configuration for Google services.
 
-### optionspage.html & optionsscript.js  
-- Settings page for user preferences: interests, API keys, default map provider, localization  
-- Persists settings in `chrome.storage.sync` and notifies `background.js`  
+### `background.js` (Assumed, not provided for review yet)
+The background service worker. Expected to:
+- Initialize the extension and user data from encrypted Chrome Storage.
+- Handle communication between different parts of the extension (popup, content scripts, options page).
+- Manage the core logic for fetching/parsing confirmations.
+- Interact with the NLP engine.
+- Build and maintain the itinerary timeline.
+- Detect scheduling conflicts.
+- Call the `apiClientManager.js` for fetching local experiences.
 
-### sidebarui.html & sidebarscript.js  
-- Renders sidebar overlay with filters, map container, and recommendation list  
-- Applies filters and updates UI upon receiving new data  
+### Content Scripts
+- **`contentScript.js` (Assumed, not provided for review yet):** Runs on known travel sites (Booking.com, Expedia, etc.) to detect and scrape booking confirmations.
+- **`emailParserContentScript.js` (Assumed, not provided for review yet):** Runs on Gmail to help identify and parse travel-related confirmations.
+- **`sidebarInjectorUpdater.js`:** Injects and manages a sidebar UI (likely `sidebar.html` or `sidebarRecommendationsMap.html`) onto web pages, updating its content based on messages.
 
-### styles.css  
-- Shared stylesheet for popup, options page, and sidebar  
-- Defines layout, theming, responsive behavior, and spinners  
+### Browser Action Popup
+- **`popupSearchQuickAccess.html`:** The HTML structure for the extension's popup when the toolbar icon is clicked. Provides a search interface.
+- **`popupInputCommunicator.js`:** The JavaScript for `popupSearchQuickAccess.html`. Handles user input from the popup, communicates with the background script to process queries (e.g., `PROCESS_POPUP_INPUT`), and displays results or status messages in the popup.
 
-### utils.js  
-- Wrapper for third-party API requests  
-- Response normalization, error handling, date/time formatting, caching helpers  
+### Options Page
+- **`userSettingsPage.html`:** The HTML structure for the extension's options/settings page. Allows users to configure preferences.
+- *Inline script within `userSettingsPage.html`*: Handles loading and saving user preferences to `chrome.storage.sync`.
+
+### Sidebar for Recommendations
+- **`sidebarRecommendationsMap.html`:** HTML structure for displaying local recommendations, featuring an interactive map (using Leaflet.js) and a list view. This is likely injected by `sidebarInjectorUpdater.js`.
+- **`sidebarRecommendationMapHandler.js`:** JavaScript for `sidebarRecommendationsMap.html`. Initializes and controls the Leaflet map, populates the map with markers, displays a list of recommendations, and handles interactions (e.g., clicking a marker or list item).
+- **`styles/sidebarRecommendationsMap.css`:** CSS styles specifically for the `sidebarRecommendationsMap.html` interface.
+
+### Utility & API Management
+- **`apiClientManager.js`:** Manages API requests to a backend (e.g., `https://api.locallens.com/v1`). Handles API key loading, request retries, caching of responses in `chrome.storage.local`, and data fetching for recommendations and insights.
+- **`installApiRouter.js`:** A utility to set up message listeners for `chrome.runtime.onMessage`, routing actions to appropriate handler functions. Likely used in `background.js`.
+- **`preferencesStorageValidator.js`:** Provides functions to get default preferences and validate user settings based on a defined schema. Used by the options page.
+
+### Styling
+- **`missingFileAlert.css`:** Styles for an alert component, possibly used to notify users of missing files or configurations (though its usage isn't explicitly defined in the provided JS files).
+- The `README.md` previously mentioned a global `styles.css`. This is not present; styling seems to be component-specific (e.g., `sidebarRecommendationsMap.css`) or inline.
 
 ---
 
 ## Installation
 
-1. Clone this repository:  
-   ```bash
-   git clone https://github.com/your-org/locallens-travel-companion-1.git
-   cd locallens-travel-companion-1
-   ```
-2. Open Chrome and navigate to `chrome://extensions/`.  
-3. Enable **Developer mode** (toggle in top-right).  
-4. Click **Load unpacked** and select this project?s root folder.  
-5. (Optional) Open **Extension options** to enter your API keys and set default preferences.  
+1.  **Clone the repository or download the source code.**
+    ```bash
+    # Example: git clone https://github.com/your-username/your-repository-name.git
+    # cd your-repository-name
+    ```
+2.  Open Google Chrome and navigate to `chrome://extensions/`.
+3.  Enable **Developer mode** (using the toggle switch, usually in the top-right corner).
+4.  Click the **"Load unpacked"** button.
+5.  Select the root folder of the extension (the folder containing `manifest.json` and all other files).
+6.  The LocalLens Travel Companion icon should appear in your Chrome toolbar.
+7.  **(Important for Gmail API):** Configure your `YOUR_GOOGLE_OAUTH_CLIENT_ID` in `manifest.json`. You'll need to create a project in Google Cloud Console, enable the Gmail API, and create OAuth 2.0 credentials (Client ID for Web application, though for extensions it's a bit different – ensure redirect URIs are set up correctly for `chrome.identity`).
+8.  **(Important for LocalLens API):** Ensure the API key for `https://api.locallens.com/v1` can be set, likely via the options page (`userSettingsPage.html`) so that `apiClientManager.js` can function.
 
 ---
 
-## Usage
+## Usage (Conceptual)
 
-1. Click the LocalLens icon in the Chrome toolbar.  
-2. In the popup, type a destination or click **Use my location**.  
-3. The extension fetches recommendations and injects a sidebar on the current page (if it matches supported domains).  
-4. Browse, filter, and interact with recommendations directly in the sidebar.  
-5. To change your interests or API keys, right-click the icon ? **Options**.  
+1.  **Install & Setup:** After installation, open the extension's options page (`userSettingsPage.html`) to configure any necessary settings (like API keys, if `apiClientManager.js` requires one to be user-provided via storage). Grant OAuth permissions if prompted for Gmail access.
+2.  **Booking Capture:** As you browse travel sites and make bookings, content scripts (`contentScript.js`) would ideally detect confirmation details.
+3.  **Email Parsing:** The extension would scan emails (via Gmail API, orchestrated by `background.js`) for travel confirmations.
+4.  **Itinerary & Recommendations:**
+    *   Click the LocalLens icon in the Chrome toolbar to open `popupSearchQuickAccess.html` for quick searches or to view itinerary summaries (once that part is built).
+    *   When on relevant pages or viewing itinerary details, a sidebar (managed by `sidebarInjectorUpdater.js` and using `sidebarRecommendationsMap.html`) might appear, showing local recommendations on a map and list.
 
 ---
 
-## File Structure
+## File Structure (Current)
 
 ```
-locallens-travel-companion-1/
-??? manifest.json
-??? background.js
-??? contentscriptinjector.js
-??? popup.html
-??? popupscript.js
-??? optionspage.html
-??? optionsscript.js
-??? sidebarui.html
-??? sidebarscript.js
-??? styles.css
-??? utils.js
+your-extension-root-folder/
+├── .gitignore
+├── LICENSE
+├── README.md
+├── apiClientManager.js
+├── installApiRouter.js
+├── manifest.json
+├── missingFileAlert.css
+├── popupInputCommunicator.js
+├── popupSearchQuickAccess.html
+├── preferencesStorageValidator.js
+├── sidebarInjectorUpdater.js
+├── sidebarRecommendationMapHandler.js
+├── sidebarRecommendationsMap.html
+├── userSettingsPage.html
+├── styles/
+│   └── sidebarRecommendationsMap.css
+├── icons/ (Assumed, referenced in manifest.json)
+│   ├── icon16.png
+│   ├── icon48.png
+│   └── icon128.png
+├── background.js (Assumed, referenced in manifest.json - NOT YET REVIEWED)
+├── contentScript.js (Assumed, referenced in manifest.json - NOT YET REVIEWED)
+├── emailParserContentScript.js (Assumed, referenced in manifest.json - NOT YET REVIEWED)
+└── sidebar.html (Assumed, referenced in manifest.json - NOT YET REVIEWED)
 ```
-
-### Component Status
-
-| Component                  | File                 | Status | Purpose                                                        |
-|----------------------------|----------------------|--------|----------------------------------------------------------------|
-| Extension Manifest         | `manifest.json`      | ? Fail   | Metadata, permissions, entry points                            |
-| API & Install Router       | `background.js`      | ? Pass   | Service worker, API orchestration, messaging                   |
-| Sidebar Injector           | `contentscriptinjector.js` | ? Fail   | Injects/updates sidebar UI                                     |
-| Popup UI                   | `popup.html`         | ? Pass   | Search form, quick-access buttons                              |
-| Popup Communicator         | `popupscript.js`     | ? Fail   | Handles user input, sends messages to background               |
-| Options Page UI            | `optionspage.html`   | ? Pass   | Configure interests, API keys, preferences                     |
-| Preferences Storage        | `optionsscript.js`   | ? Pass   | Load/save settings, validate inputs                            |
-| Sidebar HTML               | `sidebarui.html`     | ? Fail   | HTML structure for recommendations & embedded map              |
-| Sidebar JS Renderer        | `sidebarscript.js`   | ? Fail   | Renders items, map markers, handles filters                    |
-| Utilities / API Client     | `utils.js`           | ? Pass   | API request wrappers, caching, formatting                      |
-| Stylesheet                 | `styles.css`         | ? Pass   | Shared styles for popup, options page, sidebar                 |
+*(Note: `options.html` from the manifest is `userSettingsPage.html` in your file list.)*
 
 ---
 
 ## Dependencies
 
-- Google Chrome (latest version)  
-- Geolocation API (built-in)  
-- Third-party APIs for points of interest (e.g., Foursquare, Google Places)  
-- Mapping service (e.g., Leaflet, Google Maps Embed)  
-
-_No external Node.js dependencies are required to run the extension in Chrome._
+-   Google Chrome (latest version)
+-   Leaflet.js (for maps, included via CDN in `sidebarRecommendationsMap.html`)
+-   Access to a LocalLens API backend (e.g., `https://api.locallens.com/v1`)
+-   Gmail API (for email parsing)
 
 ---
 
-## To-Do / Roadmap
+## To-Do / Roadmap (Based on current files & project plan)
 
-- [ ] Finalize `styles.css` definitions for sidebar backdrop, close/minimize buttons, spinners, and error states  
-- [ ] Implement missing UI elements in `popupscript.js`, `contentscriptinjector.js`, `sidebarui.html`, and `sidebarscript.js`  
-- [ ] Add unit tests for:  
-  - `utils.js` request wrappers & caching logic  
-  - `background.js` message handlers  
-  - `sidebarscript.js` rendering & filter application  
-- [ ] Internationalization support for UI labels  
-
----
-
-## Contributing
-
-1. Fork the repository  
-2. Create a feature branch (`git checkout -b feature/YourFeature`)  
-3. Commit your changes (`git commit -am 'Add new feature'`)  
-4. Push to the branch (`git push origin feature/YourFeature`)  
-5. Open a Pull Request  
-
-Please ensure all new code is covered by tests and follows the existing code style.
-
----
-
-**Enjoy discovering the world with LocalLens Travel Companion!**
+-   [ ] **Implement `background.js`:** This is the core orchestrator.
+-   [ ] **Implement `contentScript.js`:** For scraping booking sites.
+-   [ ] **Implement `emailParserContentScript.js` and associated background logic for Gmail/Outlook API interaction.**
+-   [ ] **Develop NLP Engine:** For document classification.
+-   [ ] **Design and implement the itinerary timeline data structure and UI.**
+-   [ ] **Implement conflict detection logic.**
+-   [ ] **Implement client-side encryption for `chrome.storage.local`.**
+-   [ ] **Develop `sidebar.html`** (if it's different from `sidebarRecommendationsMap.html` and is the primary injected UI for itinerary/docs).
+-   [ ] **Implement PDF export functionality.**
+-   [ ] **Create icons** for the extension (referenced in `manifest.json`).
+-   [ ] **Refine API key management:** Ensure `apiClientManager.js` can securely obtain and use the API key for `api.locallens.com`. This likely involves the options page (`userSettingsPage.html`) saving the key to `chrome.storage.local` or `chrome.storage.sync`.
+-   [ ] **Thoroughly test message passing** between all components.
+-   [ ] **Finalize UI/UX** for all components.
