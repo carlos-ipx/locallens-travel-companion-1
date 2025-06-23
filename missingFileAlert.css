@@ -1,70 +1,83 @@
+```css
 :root {
   --missing-alert-bg: #fff3cd;
-  --missing-alert-text: #856404;
-  --missing-alert-border: #ffeeba;
-  --missing-alert-border-radius: 4px;
-  --missing-alert-padding: 12px;
-  --missing-alert-font-size: 14px;
-  --missing-alert-icon-size: 1.2em;
-  --missing-alert-transition: 0.3s ease;
+  --missing-alert-text: #664d03; /* Slightly darker for better contrast based on WCAG AA for #fff3cd */
+  --missing-alert-border: #ffda6a; /* Adjusted for better harmony with bg */
+  --missing-alert-border-radius: 0.25rem; /* Common bootstrap-like radius */
+  --missing-alert-padding: 0.75rem 1rem; /* Common padding */
+  --missing-alert-font-size: 0.9rem; /* Standard base font size */
+  --missing-alert-icon-size: 1.1em;
+  --missing-alert-transition-duration: 0.25s;
+  --missing-alert-transition-timing: ease-in-out;
 }
 
 .missing-file-alert {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Align items to the top for multi-line messages */
   background-color: var(--missing-alert-bg);
   color: var(--missing-alert-text);
   border: 1px solid var(--missing-alert-border);
+  border-left-width: 0.25rem; /* Thicker left border for emphasis */
   border-radius: var(--missing-alert-border-radius);
   padding: var(--missing-alert-padding);
-  font-family: inherit;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; /* Modern system font stack */
   font-size: var(--missing-alert-font-size);
   position: relative;
-  margin: 10px 0;
-  animation: missing-alert-fade-in var(--missing-alert-transition) forwards;
+  margin: 1rem 0;
+  animation: missing-alert-fade-in var(--missing-alert-transition-duration) var(--missing-alert-transition-timing) forwards;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+  line-height: 1.5; /* Improved readability */
 }
 
 .missing-file-alert__icon {
-  margin-right: 8px;
+  margin-right: 0.75rem;
   font-size: var(--missing-alert-icon-size);
-  line-height: 1;
+  line-height: 1; /* Align icon properly with the first line of text */
+  flex-shrink: 0;
+  margin-top: 0.1em; /* Slight adjustment for vertical alignment */
 }
 
 .missing-file-alert__message {
-  flex: 1;
-  line-height: 1.4;
+  flex-grow: 1;
 }
 
 .missing-file-alert__close {
   background: transparent;
   border: none;
-  color: var(--missing-alert-text);
-  font-size: var(--missing-alert-icon-size);
+  color: inherit; /* Inherit color from parent for consistency */
+  font-size: 1.25rem; /* Slightly larger for easier clicking */
+  font-weight: bold;
   cursor: pointer;
-  padding: 0;
-  margin-left: 8px;
+  padding: 0; /* Reset padding */
+  margin-left: 1rem; /* Space from message */
   line-height: 1;
-  transition: opacity var(--missing-alert-transition);
+  opacity: 0.7; /* Slightly transparent by default */
+  transition: opacity var(--missing-alert-transition-duration) var(--missing-alert-transition-timing);
+  flex-shrink: 0;
 }
 
-.missing-file-alert__close:hover {
-  opacity: 0.7;
-}
-
+.missing-file-alert__close:hover,
 .missing-file-alert__close:focus {
+  opacity: 1; /* Fully opaque on hover/focus */
+  text-decoration: none; /* Remove underline if browser adds it */
+}
+
+.missing-file-alert__close:focus-visible { /* Modern focus styling */
   outline: 2px solid var(--missing-alert-text);
   outline-offset: 2px;
+  box-shadow: 0 0 0 0.2rem rgba(133,100,4,0.25); /* Focus ring consistent with alert color */
 }
 
 .missing-file-alert--hidden {
-  animation: missing-alert-fade-out var(--missing-alert-transition) forwards;
-  pointer-events: none;
+  /* Using display: none is generally best for completely hiding and removing from flow */
+  display: none !important;
+  /* If animation is desired before display:none, JS would handle adding/removing this class after animation */
 }
 
 @keyframes missing-alert-fade-in {
   from {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translateY(-0.5rem);
   }
   to {
     opacity: 1;
@@ -72,32 +85,35 @@
   }
 }
 
+/* Example fade-out animation if JS manages removal after animation */
+/*
 @keyframes missing-alert-fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-0.5rem); }
 }
+*/
 
 @media (max-width: 480px) {
+  /* No changes needed here if flex-start and relative/absolute positioning for close is desired */
+  /* The default styles already accommodate reasonably well, but you can add specifics: */
   .missing-file-alert {
-    flex-direction: column;
-    align-items: flex-start;
+    /* flex-direction: column; // Already in original, good */
+    /* align-items: flex-start; // Already in original, good */
   }
   .missing-file-alert__close {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+    /* position: absolute; // Already in original */
+    /* top: 0.5rem; // Already in original (adjust as per padding) */
+    /* right: 0.5rem; // Already in original (adjust as per padding) */
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .missing-file-alert,
-  .missing-file-alert--hidden,
-  .missing-file-alert__close {
+  .missing-file-alert {
     animation: none !important;
+  }
+  .missing-file-alert__close {
     transition: none !important;
   }
+  /* .missing-file-alert--hidden { // display:none already handles this } */
 }
+```
