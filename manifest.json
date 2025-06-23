@@ -26,10 +26,12 @@
     "https://*.enterprise.com/*",
     "https://mail.google.com/*",
     "https://outlook.office.com/*",
-    "https://outlook.live.com/*"
+    "https://outlook.live.com/*",
+    "https://your-worker-name.your-account.workers.dev/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "content_scripts": [
     {

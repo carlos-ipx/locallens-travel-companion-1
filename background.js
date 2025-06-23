@@ -7,6 +7,9 @@
 import { apiClientManager } from './utils.js';
 import { installApiRouter } from './apiRouterInstaller.js';
 
+// OFFSCREEN_DOCUMENT_PATH and getGeolocationViaOffscreen function removed.
+// Geolocation will be replaced by geocoding user-typed locations.
+
 console.log("LocalLens Background Service Worker starting...");
 
 // Extension lifecycle events
@@ -22,15 +25,97 @@ chrome.runtime.onInstalled.addListener(details => {
 const routes = {
   PROCESS_POPUP_INPUT: async (payload, sender) => {
     console.log("Background: Received PROCESS_POPUP_INPUT", payload);
-    if (!payload || !payload.query) {
-      throw new Error("Query is missing in PROCESS_POPUP_INPUT");
-    }
-    // Example: Fetch recommendations based on the query
-    // This is a placeholder. Actual implementation will depend on API structure.
-    // const recommendations = await apiClientManager.getRecommendations(payload.query.lat, payload.query.lon);
-    // return { items: recommendations };
-    // For now, returning a dummy response
-    return { message: `Query "${payload.query}" received. Processing not yet implemented.`, items: [] };
+    // Removed the old erroneous check for !payload.query that was throwing the error.
+    // The logic now correctly proceeds to the Promise that handles locationQuery.
+
+    // The Promise-based logic starts here:
+    return new Promise(async (resolve) => {
+      // This first check within the promise for payload.query was also part of the old/mixed logic.
+      // It should solely rely on payload.locationQuery as per the message structure.
+      // if (!payload || !payload.query) { // This line is effectively superseded by the check below
+      //   resolve({ message: "Query is missing.", items: [] });
+      //   return;
+      // }
+
+      // Correct logic starts here, expecting payload.locationQuery
+      try {
+        if (!payload || !payload.locationQuery) { // Check for payload itself and locationQuery
+          resolve({ message: "Location query is missing.", items: [] });
+          return;
+        }
+        const geocodedLocation = await apiClientManager.geocode(payload.locationQuery);
+        console.log(`Background: Geocoded "${payload.locationQuery}" to Lat: ${geocodedLocation.lat}, Lon: ${geocodedLocation.lon}`);
+
+        // payload.placeTypeQuery is "" for PROCESS_POPUP_INPUT.
+        // searchByQuery with empty placeTypeQuery now fetches a candidate list (limit 15) for "things to do".
+        const candidatePlaces = await apiClientManager.searchByQuery(
+          payload.placeTypeQuery, // This will be ""
+          geocodedLocation.lat,
+          geocodedLocation.lon
+        );
+
+        if (candidatePlaces && candidatePlaces.length > 0) {
+          const topCandidates = candidatePlaces.slice(0, 5);
+          const itemsWithSummaries = await Promise.all(
+            topCandidates.map(async (place) => {
+              try {
+                const summary = await apiClientManager.getOpenAISummary(place.name, geocodedLocation.fullAddress || payload.locationQuery);
+                return {
+                  name: place.name,
+                  address: place.address, // Keep address if available
+                  categories: place.categories, // Keep categories if available
+                  authentic_summary: summary
+                };
+              } catch (summaryError) {
+                console.error(`Error getting OpenAI summary for ${place.name}:`, summaryError);
+                return {
+                  name: place.name,
+                  address: place.address,
+                  categories: place.categories,
+                  authentic_summary: "Could not load an authentic summary for this place. It is a known point of interest." // Fallback summary
+                };
+              }
+            })
+          );
+          resolve({ items: itemsWithSummaries });
+        } else {
+          resolve({ message: `Could not find specific things to do in "${payload.locationQuery}". Try a broader search or check spelling.`, items: [] });
+        }
+      } catch (error) { // Catches errors from geocode or searchByQuery
+        console.error("Error in PROCESS_POPUP_INPUT handler:", error);
+        resolve({ message: `Error processing your request: ${error.message}`, items: [] });
+      }
+    });
+  },
+  searchPlaces: async (payload, sender) => { // For quick buttons
+    console.log("Background: Received searchPlaces", payload);
+    return new Promise(async (resolve) => {
+      // Payload for searchPlaces is { placeTypeQuery: "type", locationQuery: "text" }
+      if (!payload.locationQuery) {
+        resolve({ status: 'error', message: 'Location query is missing for quick search.' });
+        return;
+      }
+      if (!payload.placeTypeQuery) { // Should not happen if buttons are configured
+        resolve({ status: 'error', message: 'Place type query is missing for quick search.' });
+        return;
+      }
+
+      try {
+        const geocodedLocation = await apiClientManager.geocode(payload.locationQuery);
+        console.log(`Background: Geocoded "${payload.locationQuery}" to Lat: ${geocodedLocation.lat}, Lon: ${geocodedLocation.lon} for quick search type "${payload.placeTypeQuery}"`);
+
+        const results = await apiClientManager.searchByQuery(payload.placeTypeQuery, geocodedLocation.lat, geocodedLocation.lon);
+
+        if (results && results.length > 0) {
+          resolve({ status: 'success', data: results });
+        } else {
+          resolve({ status: 'success', data: [], message: `No ${payload.placeTypeQuery} found in "${payload.locationQuery}".` });
+        }
+      } catch (error) { // Catches errors from geocode or searchByQuery
+        console.error("Error in searchPlaces handler:", error);
+        resolve({ status: 'error', message: `Error: ${error.message}` });
+      }
+    });
   },
   pageNavigated: async (payload, sender) => {
     console.log("Background: Received pageNavigated", payload);
@@ -62,31 +147,17 @@ console.log("LocalLens API Router installed.");
 //   }
 // });
 
-// Initialize API Client (e.g., load API key if needed at startup)
-apiClientManager.loadApiKey().then(key => {
-  if (key && key.length > 0) { // Also check if the key is not an empty string
-    console.log("API Key loaded for apiClientManager.");
-  } else if (key === "") {
-    console.warn("API Key is configured but is an empty string.");
-    // Potentially notify the user or guide them to the options page
-    // chrome.notifications.create('NO_API_KEY', {
-    //   type: 'basic',
-    //   iconUrl: chrome.runtime.getURL('icons/icon48.png'),
-    //   title: 'LocalLens API Key Needed',
-    //   message: 'Please set your API key in the LocalLens options to fetch recommendations.'
-    // });
-  } else { // Key is null or undefined
-    console.warn("API Key not found for apiClientManager. Please configure it in options.");
-    // Optionally, create a notification to guide the user to the options page
-    // chrome.notifications.create('SETUP_API_KEY', {
-    //   type: 'basic',
-    //   iconUrl: chrome.runtime.getURL('icons/icon48.png'),
-    //   title: 'LocalLens Setup',
-    //   message: 'Please set your API key in the LocalLens options page to get started.'
-    // });
-  }
-}).catch(error => {
-  console.error("Error loading API Key:", error);
-});
+// Old API Key loading logic removed as Geoapify key is hardcoded in utils.js for now.
+// apiClientManager.loadApiKey().then(key => {
+//   if (key && key.length > 0) { // Also check if the key is not an empty string
+//     console.log("API Key loaded for apiClientManager.");
+//   } else if (key === "") {
+//     console.warn("API Key is configured but is an empty string.");
+//   } else { // Key is null or undefined
+//     console.warn("API Key not found for apiClientManager. Please configure it in options.");
+//   }
+// }).catch(error => {
+//   console.error("Error loading API Key:", error);
+// });
 
 console.log("LocalLens Background Service Worker initialized.");
